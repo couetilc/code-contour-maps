@@ -1,0 +1,50 @@
+<html>
+<head>
+</head>
+<body>
+
+<pre>
+	<code>
+	</code>
+</pre>
+
+<style>
+h1 { text-decoration: underline }
+*[data-indent="0"] {
+	padding: 1px;
+	margin: 1px;
+	border: 1px solid red;
+}
+*[data-indent="1"] {
+	padding: 1px;
+	margin: 1px;
+	border: 1px solid purple;
+}
+</style>
+
+<script>
+const code = `
+def add(x, y):
+	return x + y
+
+if __name__ == '__main__':
+	print(add(1, 2))
+`
+
+function parse(code) {
+	return code.split('\n').map(line => {
+		return `<div class="token" data-indent="${
+			line.length - line.trimStart().length
+		}">${
+			line
+		}</div>`
+	}).reduceRight((line, acc) => {
+		return acc + line
+	})
+}
+
+document.querySelector('code').innerHTML = parse(code)
+</script>
+
+</body>
+</html>
