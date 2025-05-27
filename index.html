@@ -6,39 +6,67 @@
 
 <pre>
 	<code>
-		<div class="column">
+		<div class="container">
 		</div>
 	</code>
 </pre>
 
 <style>
-.column {
-	background-color: green;
+
+/* establish design system */
+:root {
+	color-scheme: light dark;
+
+	--highlight-color: light-dark(cyan, purple);
+	--container-color: light-dark(green, grey);
+	--line-color: light-dark(white, black);
+	--text-color: light-dark(black, white);
+}
+
+/* container for the token stream */
+.container {
+	background-color: var(--container-color);
 	padding: 2px;
 	border-radius: 5px
 }
-.token {
-	border-radius: 5px;
-	box-shadow: -1px 1px 2px black;
-	padding: 4px;
-	margin: 2px;
-	border: 1px solid black;
-	background-color: inherit;
-}
-.column *[data-indent="0"] {
-	background-color: white;
-}
-.token[data-indent="none"] {
-	border: unset !important;
-	box-shadow: unset !important;
-}
-.column {
+.container {
 	--lineheight: 12px;
 	width: min-content;
 	display: block;
 }
-.column div{
+.container div{
 	min-height: var(--lineheight);
+}
+
+/* token-specific stylings */
+[data-token] {
+	border-radius: 5px;
+	box-shadow: -1px 1px 2px var(--text-color);
+	padding: 4px;
+	margin: 2px;
+	border: 1px solid var(--text-color);
+}
+[data-token="line"] {
+	background-color: var(--line-color);
+}
+
+[data-token="empty"] {
+	border: unset;
+	box-shadow: unset;
+}
+
+/* User interaction for highlighting */
+
+/* - The hovered on token AND its descendants */
+[data-token="line"]:not(:has(*[data-token="line"]:hover)):hover,
+[data-token="line"]:not(:has(*[data-token="line"]:hover)):hover * {
+	background-color: var(--highlight-color);
+}
+
+/* - The hovered on token's descendants */
+[data-token="line"]:not(:has(*[data-token="line"]:hover)):hover * {
+	border-color: transparent;
+	box-shadow: -1px 1px 2px transparent;
 }
 
 </style>
@@ -72,13 +100,15 @@ function parse() {
 		? tokens[token + 1]
 		: null
 
+	// token: empty
 	if (indent == 0 && text.length == 0) {
-		dom += '<div class="token" data-indent="none">'
+		dom += '<div data-token="empty" data-indent="none">'
 		dom += '</div>'
 	}
+	// token: line
 	else {
 	
-		dom += `<div class="token" data-indent="${indent}">`
+		dom += `<div data-token="line" data-indent="${indent}">`
 
 		if (!peek || peek.indent == indent) {
 			dom += text
@@ -103,7 +133,7 @@ function parse() {
 }
 
 parse()
-document.querySelector('code .column').innerHTML = dom
+document.querySelector('code .container').innerHTML = dom
 </script>
 
 </body>
