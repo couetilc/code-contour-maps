@@ -4,12 +4,11 @@
 </head>
 <body>
 
-<pre>
-	<code>
-		<div class="container">
-		</div>
-	</code>
-</pre>
+<code><textarea class="editor"></textarea></code>
+
+<code>
+	<pre class="container"></pre>
+</code>
 
 <style>
 
@@ -23,10 +22,31 @@
 	--text-color: light-dark(black, white);
 }
 
+/* <pre> column layout */
+body {
+	display: flex;
+	flex-flow: row wrap;
+	align-items: stretch;
+	height: 100vh;
+	width: 100vw;
+}
+body > code {
+	flex: 1 1 50%;
+	display: flex;
+	max-height: 100vh;
+}
+
+/* editor */
+.editor {
+	height: 100%;
+	width: 100%;
+}
+
 /* container for the token stream */
 .container {
 	background-color: var(--container-color);
 	padding: 2px;
+	margin: 0;
 	border-radius: 5px
 }
 .container {
@@ -34,7 +54,7 @@
 	width: min-content;
 	display: block;
 }
-.container div{
+.container [data-token]{
 	min-height: var(--lineheight);
 }
 
@@ -85,55 +105,65 @@ if __name__ == '__main__':
 	print(add(1, 2))
 `
 
-const lines = code.split('\n')
-const tokens = lines.map(line => ({
-	text: line,
-	indent: line.length - line.trimStart().length,
-}))
-let dom = ''
-let token = 0
-let peek = null
+document.querySelector('.editor').defaultValue = code
 
-function parse() {
-	const { text, indent } = tokens[token]
-	peek = token + 1 < tokens.length
-		? tokens[token + 1]
-		: null
+function makeParser(code) {
+	const lines = code.split('\n')
+	const tokens = lines.map(line => ({
+		text: line,
+		indent: line.length - line.trimStart().length,
+	}))
 
-	// token: empty
-	if (indent == 0 && text.length == 0) {
-		dom += '<div data-token="empty" data-indent="none">'
-		dom += '</div>'
-	}
-	// token: line
-	else {
-	
-		dom += `<div data-token="line" data-indent="${indent}">`
+	let dom = ''
+	let token = 0
+	let peek = null
 
-		if (!peek || peek.indent == indent) {
-			dom += text
+	function parse() {
+		const { text, indent } = tokens[token]
+		peek = token + 1 < tokens.length
+			? tokens[token + 1]
+			: null
+
+		// token: empty
+		if (indent == 0 && text.length == 0) {
+			dom += '<div data-token="empty" data-indent="none">'
+			dom += '</div>'
 		}
-		else if (peek.indent > indent) {
-			dom += text
-			token += 1
-			parse()
-		}
-		else if (peek.indent < indent) {
-			dom += text // todo
+		// token: line
+		else {
+		
+			dom += `<div data-token="line" data-indent="${indent}">`
+
+			if (!peek || peek.indent == indent) {
+				dom += text
+			}
+			else if (peek.indent > indent) {
+				dom += text
+				token += 1
+				parse()
+			}
+			else if (peek.indent < indent) {
+				dom += text // todo
+				dom += '</div>'
+			}
+
 			dom += '</div>'
 		}
 
-		dom += '</div>'
+		if (peek != null) {
+			token += 1
+			parse()
+		}
+
+		return dom
 	}
 
-	if (peek != null) {
-		token += 1
-		parse()
-	}
+	return parse
 }
 
-parse()
-document.querySelector('code .container').innerHTML = dom
+
+const parse = makeParser(code)
+document.querySelector('code .container').innerHTML = parse()
 </script>
 
 </body>
